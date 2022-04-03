@@ -348,7 +348,6 @@ class _GreenPassState extends State<GreenPass> {
                                             builder: (BuildContext context) =>
                                               WillPopScope(
                                                 onWillPop: (() async {
-                                                  print("Reverting to original brightness");
                                                   setBrightness(GreenPass.brightness_);
                                                   return true;
                                                 }),
@@ -386,7 +385,6 @@ class _GreenPassState extends State<GreenPass> {
                                           barrierDismissible: true,
                                         );
                                         setBrightness(1.0);
-                                        print("Cranking up brightness");
                                      });
                                     },
                                     child: Transform.scale(
