@@ -16,8 +16,11 @@ import 'green_pass_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:screen_brightness/screen_brightness.dart';
+
 class GreenPass extends StatefulWidget {
   final String code;
+  static double brightness_ = 0.1;
 
   const GreenPass({Key? key, required this.code}) : super(key: key);
 
@@ -27,6 +30,25 @@ class GreenPass extends StatefulWidget {
 
 class _GreenPassState extends State<GreenPass> {
   final GlobalKey globalKey = GlobalKey();
+
+  static Future<void> saveCurrentBrightness() async {
+    try {
+      GreenPass.brightness_ = await ScreenBrightness().current;
+    } catch (e) {
+      print(e);
+      throw 'Failed to save current brightness';
+    }
+  }
+
+  static Future<void> setBrightness(double brightness) async {
+    try {
+      await ScreenBrightness().setScreenBrightness(brightness);
+    } catch (e) {
+      print(e);
+      throw 'Failed to set brightness';
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -320,41 +342,52 @@ class _GreenPassState extends State<GreenPass> {
                                   padding: EdgeInsets.all(qrPadding), // 12.0
                                   child: InkWell(
                                     onTap: () {
-                                      showCupertinoDialog(
-                                          context: context,
-                                          builder: (BuildContext context) =>
-                                              CupertinoPopupSurface(
-                                                isSurfacePainted: false,
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Transform.scale(
-                                                      scale: transformScaleEnlarged,
-                                                      child: Container(
-                                                        decoration: BoxDecoration(
-                                                            color: Colors.white,
-                                                            borderRadius: BorderRadius.circular(20),
-                                                        ),
-                                                        child: Padding(
-                                                          padding: EdgeInsets.all(qrPaddingEnlarged),
-                                                          child: Transform.scale(
-                                                            scale: transformScale,
-                                                            child: QrImage(
-                                                              data: widget.code,
-                                                              version: QrVersions.auto,
-                                                              size: qrCodeEnlargedSize,
-                                                              padding: const EdgeInsets.all(0.0),
-                                                              // backgroundColor: Colors.red,
+                                     saveCurrentBrightness().then((_) { 
+                                        showCupertinoDialog(
+                                            context: context,
+                                            builder: (BuildContext context) =>
+                                              WillPopScope(
+                                                onWillPop: (() async {
+                                                  print("Reverting to original brightness");
+                                                  setBrightness(GreenPass.brightness_);
+                                                  return true;
+                                                }),
+                                                child: CupertinoPopupSurface(
+                                                  isSurfacePainted: false,
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Transform.scale(
+                                                        scale: transformScaleEnlarged,
+                                                        child: Container(
+                                                          decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              borderRadius: BorderRadius.circular(20),
+                                                          ),
+                                                          child: Padding(
+                                                            padding: EdgeInsets.all(qrPaddingEnlarged),
+                                                            child: Transform.scale(
+                                                              scale: transformScale,
+                                                              child: QrImage(
+                                                                data: widget.code,
+                                                                version: QrVersions.auto,
+                                                                size: qrCodeEnlargedSize,
+                                                                padding: const EdgeInsets.all(0.0),
+                                                                // backgroundColor: Colors.red,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                        barrierDismissible: true,
-                                      );
+                                          barrierDismissible: true,
+                                        );
+                                        setBrightness(1.0);
+                                        print("Cranking up brightness");
+                                     });
                                     },
                                     child: Transform.scale(
                                       scale: transformScale,

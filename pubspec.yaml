@@ -63,6 +63,8 @@ dependencies:
   loading_overlay: ^0.3.0
   barcode_finder: ^0.0.4
 
+  # For changing the screen brightness
+  screen_brightness: ^0.1.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
